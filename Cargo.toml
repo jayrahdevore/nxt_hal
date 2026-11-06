@@ -7,6 +7,7 @@ members = [
     "crates/nxt-boot-proto",
     "firmware/nxt-blinky",
     "firmware/nxt-lcd",
+    "firmware/nxt-motor",
     "firmware/nxt-boot",
     "firmware/nxt-avrprobe",
 ]

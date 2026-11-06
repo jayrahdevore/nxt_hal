@@ -30,6 +30,14 @@ pub enum Button {
     Left,
 }
 
+/// One of the three motor output ports.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Motor {
+    A = 0,
+    B = 1,
+    C = 2,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Next {
     Handshake,
@@ -41,6 +49,10 @@ enum Next {
 
 pub struct AvrLink {
     twi: Twi,
+    /// Per-motor signed speed (-100..=100) and brake bitmask, sent in every
+    /// outgoing packet.
+    motor_power: [i8; 3],
+    motor_brake: u8,
     next: Next,
     last_tick: u32,
     failures: u8,
@@ -65,6 +77,8 @@ impl AvrLink {
         let twi = Twi::new(twi_clock, &mut pio);
         Self {
             twi,
+            motor_power: [0; 3],
+            motor_brake: 0,
             next: Next::Handshake,
             last_tick: u32::MAX,
             failures: 0,
@@ -74,6 +88,19 @@ impl AvrLink {
             ok_count: 0,
             fail_count: 0,
             rehandshakes: 0,
+        }
+    }
+
+    /// Sets a motor's speed (clamped to -100..=100; negative reverses) and
+    /// whether to brake instead of coasting at 0. Takes effect on the next
+    /// outgoing packet (within ~2 ms).
+    pub fn set_motor(&mut self, motor: Motor, power: i8, brake: bool) {
+        self.motor_power[motor as usize] = power.clamp(-100, 100);
+        let bit = 1 << motor as u8;
+        if brake {
+            self.motor_brake |= bit;
+        } else {
+            self.motor_brake &= !bit;
         }
     }
 
@@ -114,7 +141,11 @@ impl AvrLink {
             }
             Next::Write => {
                 let mut tx = [0u8; 9];
-                tx[1] = 8; // PWM frequency, normal run mode (motors off)
+                tx[1] = 8; // PWM frequency, normal run mode
+                for (i, p) in self.motor_power.iter().enumerate() {
+                    tx[2 + i] = *p as u8;
+                }
+                tx[6] = self.motor_brake;
                 tx[8] = !tx[..8].iter().fold(0u8, |a, b| a.wrapping_add(*b));
                 let r = self.twi.write(AVR_ADDRESS, &tx);
                 if r.is_ok() {
