@@ -70,6 +70,15 @@ impl Lcd {
         }
     }
 
+    /// Puts the controller into reset ahead of a power-off. The spec says
+    /// this lets the board capacitors drain through the controller's drain
+    /// circuit instead of discharging uncontrolled (NxOS `nx__lcd_shutdown`).
+    /// `service` is called during the 20 ms wait to keep the AVR link alive.
+    pub fn shutdown(&mut self, pit: &Pit, mut service: impl FnMut()) {
+        self.command(&[RESET]);
+        delay_ms(pit, 20, &mut service);
+    }
+
     /// Blanks the whole panel (display stays on).
     pub fn clear(&mut self) {
         for page in 0..PAGES {

@@ -55,6 +55,7 @@ pub struct AvrLink {
     /// outgoing packet.
     motor_power: [i8; 3],
     motor_brake: u8,
+    power_off_requested: bool,
     next: Next,
     last_tick: u32,
     failures: u8,
@@ -81,6 +82,7 @@ impl AvrLink {
             twi,
             motor_power: [0; 3],
             motor_brake: 0,
+            power_off_requested: false,
             next: Next::Handshake,
             last_tick: u32::MAX,
             failures: 0,
@@ -103,6 +105,22 @@ impl AvrLink {
             self.motor_brake |= bit;
         } else {
             self.motor_brake &= !bit;
+        }
+    }
+
+    /// Asks the AVR to cut power to the brick, and never returns. Motors are
+    /// stopped. Do any cleanup (LCD reset, USB disconnect, speaker off)
+    /// first; the AVR acts on the first valid power-off packet. Once it
+    /// does, RAM is lost and the Orange button boots the brick from scratch.
+    ///
+    /// Unverified on hardware. The packet (byte 0 = 0x5A, byte 1 = 0) is
+    /// from NxOS `avr.c`.
+    pub fn power_off(&mut self, pit: &Pit) -> ! {
+        self.motor_power = [0; 3];
+        self.motor_brake = 0;
+        self.power_off_requested = true;
+        loop {
+            self.service(pit);
         }
     }
 
@@ -143,7 +161,11 @@ impl AvrLink {
             }
             Next::Write => {
                 let mut tx = [0u8; 9];
-                tx[1] = 8; // PWM frequency, normal run mode
+                if self.power_off_requested {
+                    tx[0] = 0x5A; // power-off request; byte 1 stays 0
+                } else {
+                    tx[1] = 8; // PWM frequency, normal run mode
+                }
                 for (i, p) in self.motor_power.iter().enumerate() {
                     tx[2 + i] = *p as u8;
                 }
