@@ -2,7 +2,7 @@
 
 Status: verified on a real brick (popping stopped, startup jingle plays
 with correct pitch and timing).
-References: NxOS (`github.com/danderson/nxos`: `init.S`, `avr.c`, `_twi.c`,
+References: NxOS (`github.com/danderson/nxos`, forked as `dacav/nxos`: `init.S`, `avr.c`, `_twi.c`,
 `sound.c`, `systick.c`).
 
 ## Findings

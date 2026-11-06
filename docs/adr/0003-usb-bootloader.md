@@ -13,7 +13,7 @@ SAM-BA remains the recovery path.
 |---|---|
 | `0x00100000..0x00104000` | bootloader (16 KiB = EFC lock region 0), owns the vector table at address 0 |
 | `0x00104000..0x00104100` | app header page (`NXTA`, length, CRC32, entry), written last |
-| `0x00104100..0x00140000` | app image, linked with `link-app.x` |
+| `0x00104100..0x00140000` | app image, linked with `ld/link-app.x` |
 
 Constants live in `crates/nxt-boot-proto` (host-tested). ARM7 has no VTOR,
 so the bootloader keeps the only vector table; the app's `.vectors` is
@@ -29,7 +29,9 @@ exception vectors other than reset are `b .` stubs in both images today;
 3. If the link is up and Orange stays down for 1.5 s -> upload mode.
    Releasing early boots the app. (Powering on *is* an Orange press; a
    normal quick press is released well before 1.5 s. Tune `HOLD_MS` after
-   measuring on hardware.)
+   measuring on hardware.) Apps that are already running instead enter
+   upload mode when Left+Right is held (`Button::LeftRight` in
+   `nxt_hal::avr`); only the bootloader itself uses Orange.
    (Before step 1's link wait, after the first blip, the bootloader draws
    a wrench splash on the LCD via `nxt_hal::lcd`; see ADR 0004. It is shown
    on every power-up, and an app that doesn't use the LCD leaves it up. The
@@ -62,5 +64,5 @@ root `.cargo/config.toml` forces `build-std=core`): `info`, `flash`, `boot`,
 
 ## Licensing note
 Register layouts and the enumeration flow were read from the vendored NxOS
-sources (`vendor/nxos`, GPLv2). The code here is written independently, not
+sources (a local, git-ignored clone of `danderson/nxos` at `vendor/nxos`, GPLv2). The code here is written independently, not
 copied; keep it that way, or revisit the crates' MIT/Apache license.

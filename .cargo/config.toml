@@ -8,6 +8,6 @@ target = "armv4t-none-eabi"
 [target.armv4t-none-eabi]
 linker = "arm-none-eabi-ld"
 rustflags = [
-    "-C", "link-arg=-Tlink.x",
+    "-C", "link-arg=-Tld/link.x",
     "-C", "panic=abort",
 ]

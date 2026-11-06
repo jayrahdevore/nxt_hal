@@ -5,7 +5,7 @@
 //! hold an *instruction* (not a pointer), and each exception mode has its
 //! own banked `SP` that software must set up explicitly before using it.
 //! None of this is expressible in safe Rust, so it's written directly in
-//! assembly and placed in the `.vectors`/`.text` sections that `link.x`
+//! assembly and placed in the `.vectors`/`.text` sections that `ld/link.x`
 //! expects.
 
 use core::arch::global_asm;

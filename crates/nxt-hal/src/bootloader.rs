@@ -1,7 +1,7 @@
 //! Re-entering the USB bootloader from a running app.
 //!
 //! Only meaningful for images linked behind the bootloader
-//! (`link-app.x`); an image linked at the start of flash *is* the
+//! (`ld/link-app.x`); an image linked at the start of flash *is* the
 //! firmware, and jumping to `FLASH_BASE` would just restart itself.
 
 use nxt_boot_proto::{APP_BASE, BOOT_REQUEST_ADDR, BOOT_REQUEST_MAGIC, FLASH_BASE};

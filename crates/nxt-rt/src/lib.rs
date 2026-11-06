@@ -3,7 +3,7 @@
 //!
 //! Firmware binaries depend on this crate purely for its side effects
 //! (the vector table and reset handler it places in `.vectors`/`.text`,
-//! kept alive by `link.x`'s `KEEP()` and `ENTRY(_reset)`) and must supply
+//! kept alive by `ld/link.x`'s `KEEP()` and `ENTRY(_reset)`) and must supply
 //! a `#[no_mangle] pub extern "C" fn main() -> !` for [`start::_start_rust`]
 //! to call once `.data`/`.bss` are initialized.
 #![no_std]

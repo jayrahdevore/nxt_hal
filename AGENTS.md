@@ -37,6 +37,16 @@ not a PC-side driver/SDK.
   on.
 - `firmware/*` — thin `#![no_std] #![no_main]` binaries, one per milestone
   deliverable.
+- `ld/` — linker scripts: `link.x` (default, flash at 0), `link-boot.x`
+  (bootloader), `link-app.x` (app behind the bootloader), `link-ram.x`
+  (RAM-loaded probes, see `tools/samba`).
+- `tools/` — host-side tools, outside the cargo workspace (it forces
+  `build-std` for armv4t): `nxtboot` (USB bootloader client, own
+  `Cargo.lock`), `samba` (SAM-BA debug clients in C), `img2lcd` (SVG ->
+  LCD bitmap converter for splash/Ferris assets).
+- `vendor/` — git-ignored, local-only. `vendor/nxos` is a clone of
+  `github.com/danderson/nxos` (GPLv2) kept as reading material; nothing is
+  copied from it. Re-clone it if you need it.
 - `docs/adr/` — decisions that took real research to pin down (e.g. the
   motor/AVR-link protocol); read these before re-deriving something
   that's already been nailed down.
@@ -54,7 +64,7 @@ source for it.
 The linker of record is GNU `arm-none-eabi-ld`, not `rust-lld` — this
 target ships with no default linker script, and the GBA ecosystem's
 experience with the same CPU family favors GNU `ld` for this style of
-hand-written linker script (`link.x`).
+hand-written linker script (`ld/link.x`).
 
 ## Build / flash
 
@@ -64,12 +74,18 @@ not packaged in nixpkgs; see `nix/libnxt.nix`).
 
 ```
 just build          # cargo build -Z build-std=core --release -p nxt-blinky
-just bin            # objcopy ELF -> raw .bin
+just bin            # objcopy ELF -> raw .bin in target/images/
 just flash          # fwflash over USB (brick must be in SAM-BA mode first --
                      # hold the hidden reset button under the USB port 5+ seconds)
 just size           # arm-none-eabi-size: check the 256K flash / 64K RAM budget
 just disasm         # objdump -d: manually verify the vector table / section layout
+just test           # host-side tests (test-host + test-tools)
+just boot-build     # bootloader; also app-build/app-bin/boot-install/app-upload, ram-build
+just clean-images   # remove target/images/
 ```
+
+All recipes take an optional firmware name (default `nxt-blinky`); generated
+images land in `target/images/`, never in the repo root.
 
 ## Verification limits — read before claiming something "works"
 
@@ -78,7 +94,7 @@ model is for the GBA, which has a completely different memory map and
 peripheral set, and isn't worth adapting here. That means:
 
 - A clean `cargo build` and a correct-looking `objdump -d` (vector table
-  bytes at `0x0`-`0x1C`, section placement matching `link.x`) are the
+  bytes at `0x0`-`0x1C`, section placement matching `ld/link.x`) are the
   *only* checks available without physical hardware.
 - Pure logic with no `nxt-pac` dependency (duty-cycle math, type
   conversions, tachometer arithmetic) should be tested with ordinary
@@ -111,14 +127,11 @@ peripheral set, and isn't worth adapting here. That means:
   of a silent runtime trap — don't bypass it by reaching into `nxt-pac`
   directly unless you're deliberately working below that safety line.
 
-See `/home/agents/.claude/plans/i-have-a-lego-ethereal-bentley.md` for the
-original project plan (context on why things are structured this way,
-and the milestone sequence beyond what's built so far).
-
 ## USB bootloader
 
 `firmware/nxt-boot` (see `docs/adr/0003-usb-bootloader.md`) lets you update
-the app over USB: hold Orange while powering on. One-time install over
+the app over USB. From a cold boot, hold Orange while powering on; from a
+running app (`nxt-lcd`, `nxt-motor`, `nxt-blinky`), hold Left+Right. One-time install over
 SAM-BA with `just boot-install`; afterwards `just app-upload`. Apps meant
-for it link with `link-app.x` (`just app-build`), not `link.x`. The
+for it link with `ld/link-app.x` (`just app-build`), not `ld/link.x`. The
 bootloader itself is all hardware-unverified until flashed.

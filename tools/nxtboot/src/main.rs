@@ -3,7 +3,7 @@
 //! ```text
 //! nxtboot info                     query the bootloader
 //! nxtboot flash [--no-boot] APP.bin
-//!                                  upload an app image (linked with link-app.x),
+//!                                  upload an app image (linked with ld/link-app.x),
 //!                                  then boot it unless --no-boot
 //! nxtboot verify APP.bin           compare the installed image with a local file
 //! nxtboot boot                     validate + run the installed app

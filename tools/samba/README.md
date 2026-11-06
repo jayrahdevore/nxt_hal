@@ -8,7 +8,6 @@ debug firmware without JTAG. Build each with
 - `poke rADDR wADDR=VAL sMS ...` -- read/write registers, sleep (hex).
 - `load FILE ADDR` -- write a raw binary into RAM and run it (`G`).
 
-Workflow: build `firmware/nxt-avrprobe` for RAM
-(`RUSTFLAGS="-C link-arg=-Tlink-ram.x -C panic=abort" cargo build -Z build-std=core --release -p nxt-avrprobe`,
-`objcopy -O binary`), `load` it at 202000, then `samba 20D000 N` to read
+Workflow: `just ram-build` (writes `target/images/nxt-avrprobe.ram.bin`),
+`load` it at 202000, then `samba 20D000 N` to read
 its mailbox. See `docs/adr/0002-bringup-findings.md` for the gotchas.

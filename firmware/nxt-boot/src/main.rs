@@ -1,4 +1,4 @@
-//! USB bootloader. Link with `link-boot.x` (see `just boot-build`).
+//! USB bootloader. Link with `ld/link-boot.x` (see `just boot-build`).
 //!
 //! Boot decision: once the AVR link is up (the only way to read buttons),
 //! Orange held continuously for [`HOLD_MS`] -- or no valid app installed --
