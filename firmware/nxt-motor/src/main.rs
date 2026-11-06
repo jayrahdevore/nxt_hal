@@ -6,7 +6,7 @@
 #![no_std]
 #![no_main]
 
-use nxt_hal::avr::{AvrLink, Button, Motor};
+use nxt_hal::avr::{AvrLink, Button, Hold, Motor};
 use nxt_hal::bootloader;
 use nxt_hal::{Peripherals, Pit};
 
@@ -27,10 +27,10 @@ pub extern "C" fn main() -> ! {
     let pit = Pit::new_1ms();
     let mut avr = AvrLink::new(&mut pmc);
 
-    // Holding Orange this long restarts into the USB bootloader (only when
+    // Holding Left+Right this long restarts into the USB bootloader (only when
     // linked behind it; see `bootloader::available`).
     const FLASH_MODE_HOLD_MS: u32 = 1000;
-    let mut held_ms: u32 = 0;
+    let mut chord = Hold::default();
     let mut last_tick = pit.ticks();
     loop {
         avr.service(&pit);
@@ -43,7 +43,7 @@ pub extern "C" fn main() -> ! {
             } else {
                 avr.set_motor(Motor::A, 0, true);
             }
-            held_ms = if button == Button::Enter { held_ms + 1 } else { 0 };
+            let held_ms = chord.update(button == Button::LeftRight);
             if held_ms >= FLASH_MODE_HOLD_MS && bootloader::available() {
                 avr.set_motor(Motor::A, 0, true);
                 bootloader::enter(&mut pmc);

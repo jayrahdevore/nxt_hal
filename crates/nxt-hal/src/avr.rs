@@ -30,6 +30,36 @@ pub enum Button {
     Right,
     /// Verified on hardware (spins motor A in `nxt-motor`).
     Left,
+    /// Left and Right held together. The AVR reports one analog level for
+    /// all buttons; measured on hardware: chord ~179, Left alone ~255,
+    /// Right alone ~406 (readings jitter by a few bits).
+    LeftRight,
+}
+
+/// Tracks how long a condition has been held, ticking once per ms. The chord
+/// reading jitters, so brief dropouts (up to [`Hold::GRACE_MS`]) don't reset it.
+#[derive(Default)]
+pub struct Hold {
+    held_ms: u32,
+    gap_ms: u32,
+}
+
+impl Hold {
+    pub const GRACE_MS: u32 = 5;
+
+    /// Call once per ms; returns the ms the condition has been held.
+    pub fn update(&mut self, pressed: bool) -> u32 {
+        if pressed {
+            self.held_ms += 1;
+            self.gap_ms = 0;
+        } else {
+            self.gap_ms += 1;
+            if self.gap_ms > Self::GRACE_MS {
+                self.held_ms = 0;
+            }
+        }
+        self.held_ms
+    }
 }
 
 /// One of the three motor output ports.
@@ -130,7 +160,8 @@ impl AvrLink {
             1024.. => Button::Enter,
             721..=1023 => Button::Cancel,
             271..=720 => Button::Right,
-            61..=270 => Button::Left,
+            150..=205 => Button::LeftRight,
+            61..=149 | 206..=270 => Button::Left,
             _ => Button::None,
         }
     }
