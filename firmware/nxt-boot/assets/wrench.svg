@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Hand-drawn wrench for the bootloader splash screen. Black shapes with
+     white cut-outs on a 3:2 canvas (matching the 96x64 render in
+     tools/img2lcd/convert.sh). Open-end jaw bottom-left, ring end top-right. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="100" viewBox="0 0 150 100">
+  <rect width="150" height="100" fill="#fff"/>
+  <g transform="translate(75 50) rotate(-45)">
+    <!-- handle -->
+    <rect x="-38" y="-8" width="76" height="16" fill="#000"/>
+    <!-- open-end head with its jaw slot -->
+    <circle cx="-38" cy="0" r="22" fill="#000"/>
+    <rect x="-64" y="-7" width="34" height="14" fill="#fff"/>
+    <!-- ring head with its hole -->
+    <circle cx="38" cy="0" r="17" fill="#000"/>
+    <circle cx="38" cy="0" r="8" fill="#fff"/>
+  </g>
+</svg>

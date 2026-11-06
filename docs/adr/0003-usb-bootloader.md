@@ -30,6 +30,12 @@ exception vectors other than reset are `b .` stubs in both images today;
    Releasing early boots the app. (Powering on *is* an Orange press; a
    normal quick press is released well before 1.5 s. Tune `HOLD_MS` after
    measuring on hardware.)
+   (Before step 1's link wait, after the first blip, the bootloader draws
+   a wrench splash on the LCD via `nxt_hal::lcd`; see ADR 0004. It is shown
+   on every power-up, and an app that doesn't use the LCD leaves it up. The
+   bitmap is `firmware/nxt-boot/src/wrench.rs`, generated from the
+   hand-drawn `assets/wrench.svg` by `tools/img2lcd/convert.sh`. Cost: about
+   1.3 KiB of the 16 KiB budget.)
 4. Otherwise `Pmc::slow_clock()` (so the app's `init_clocks` never
    rewrites the PLL while MCK runs from it) and `jump_to`.
 

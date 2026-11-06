@@ -19,11 +19,15 @@ use nxt_boot_proto::{
 };
 use nxt_hal::avr::{AvrLink, Button};
 use nxt_hal::flash::Flash;
+use nxt_hal::lcd::Lcd;
 use nxt_hal::sound::Speaker;
 use nxt_hal::usb::Usb;
 use nxt_hal::{Peripherals, Pit};
 
 extern crate nxt_rt as _;
+
+// Splash bitmap, generated from assets/wrench.svg by tools/img2lcd/convert.sh.
+mod wrench;
 
 /// Orange must stay down this long after the AVR link comes up.
 const HOLD_MS: u32 = 1500;
@@ -117,6 +121,12 @@ pub extern "C" fn main() -> ! {
     // one short low tone. If you never hear it, the bootloader itself isn't
     // executing (e.g. the SAM-BA install did not take).
     speaker.beep(659, 100, || avr.service(&pit));
+
+    // Splash screen. Drawn on every power-up, before the boot decision; an
+    // app that doesn't use the LCD leaves it up. The ~40 ms of LCD reset
+    // waits keep the AVR link serviced.
+    let mut lcd = Lcd::new(pmc.enable_spi_clock(), pmc.enable_pioa_clock(), &pit, || avr.service(&pit));
+    lcd.flush(&wrench::WRENCH);
 
     // Wait for the first valid AVR reply: before that `button()` reads 0,
     // which is indistinguishable from "nothing pressed".
