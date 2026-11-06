@@ -1,0 +1,13 @@
+[unstable]
+build-std = ["core"]
+build-std-features = ["compiler-builtins-mem"]
+
+[build]
+target = "armv4t-none-eabi"
+
+[target.armv4t-none-eabi]
+linker = "arm-none-eabi-ld"
+rustflags = [
+    "-C", "link-arg=-Tlink.x",
+    "-C", "panic=abort",
+]

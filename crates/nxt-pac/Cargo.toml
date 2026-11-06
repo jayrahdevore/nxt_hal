@@ -1,0 +1,9 @@
+[package]
+name = "nxt-pac"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Register-level peripheral access for the NXT's AT91SAM7S256 (no SVD exists for this chip; definitions are hand-written from Atmel's AT91SAM7S256.h and cross-checked against the datasheet)."
+
+[dependencies]
+vcell = "0.1.3"

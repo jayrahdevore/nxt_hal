@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nxt-pac",
+    "crates/nxt-rt",
+    "crates/nxt-hal",
+    "firmware/nxt-blinky",
+    "firmware/nxt-avrprobe",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+debug = true

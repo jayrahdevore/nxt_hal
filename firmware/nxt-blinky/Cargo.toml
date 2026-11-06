@@ -1,0 +1,12 @@
+[package]
+name = "nxt-blinky"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Milestone 0: toggles one PIOA line, exercising the whole toolchain (vector table, reset handler, linker script, build-std, objcopy, fwflash) end to end before any motor code exists."
+
+[dependencies]
+embedded-hal = "1.0.0"
+nxt-hal = { path = "../../crates/nxt-hal" }
+nxt-rt = { path = "../../crates/nxt-rt" }

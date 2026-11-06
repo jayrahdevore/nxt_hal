@@ -1,0 +1,10 @@
+[package]
+name = "nxt-avrprobe"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Debug probe: runs from RAM via SAM-BA 'G', tries the AVR handshake, leaves results in a RAM mailbox."
+
+[dependencies]
+nxt-hal = { path = "../../crates/nxt-hal" }
