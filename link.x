@@ -42,12 +42,16 @@ SECTIONS
     .rodata :
     {
         *(.rodata .rodata.*)
+        . = ALIGN(4);
     } > FLASH
 
-    .data :
+    .data : ALIGN(4)
     {
         _sdata = .;
         *(.data .data.*)
+        /* Code that must run from RAM (flash.rs: ram_command). */
+        *(.ramfunc .ramfunc.*)
+        . = ALIGN(4);
         _edata = .;
     } > RAM AT> FLASH
     _sidata = LOADADDR(.data);

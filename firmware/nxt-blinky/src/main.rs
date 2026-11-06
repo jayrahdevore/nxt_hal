@@ -18,6 +18,7 @@
 
 use embedded_hal::digital::OutputPin;
 use nxt_hal::avr::{AvrLink, Button};
+use nxt_hal::bootloader;
 use nxt_hal::gpio::{Output, Pin};
 use nxt_hal::sound::Speaker;
 use nxt_hal::{Peripherals, Pit};
@@ -54,6 +55,10 @@ pub extern "C" fn main() -> ! {
     let mut pin: Pin<SENSOR_PORT_1_DIGI0, Output> = Pin::new_output(clock);
 
     let mut was_pressed = false;
+    // Holding Orange this long restarts into the USB bootloader (only when
+    // linked behind it; see `bootloader::available`).
+    const FLASH_MODE_HOLD_MS: u32 = 1000;
+    let mut held_ms: u32 = 0;
 
     // Blink PA23 every 200 ms, keeping the AVR link alive in between.
     let mut last_tick = pit.ticks();
@@ -70,6 +75,14 @@ pub extern "C" fn main() -> ! {
         if t != last_tick {
             last_tick = t;
             ms += 1;
+            held_ms = if pressed { held_ms + 1 } else { 0 };
+            if held_ms >= FLASH_MODE_HOLD_MS && bootloader::available() {
+                // Flash-mode tone (same rising pair the bootloader plays).
+                for freq in [988, 1319] {
+                    speaker.beep(freq, 100, || avr.service(&pit));
+                }
+                bootloader::enter(&mut pmc);
+            }
             if ms % 200 == 0 {
                 if (ms / 200) % 2 == 0 {
                     pin.set_low().unwrap();

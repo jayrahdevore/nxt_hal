@@ -40,6 +40,11 @@ const SR_MOSCS: u32 = 1 << 0;
 const SR_LOCK: u32 = 1 << 2;
 const SR_MCKRDY: u32 = 1 << 3;
 
+/// Proof that `Pmc::init_clocks` has run: MCK is ~48 MHz and the flash
+/// controller's wait states / FMCN are programmed for it. Flash writes
+/// require this, since FMCN set for the wrong clock corrupts programming.
+pub struct ClocksReady(pub(crate) ());
+
 /// Owns the PMC register block.
 pub struct Pmc {
     _private: (),
@@ -80,10 +85,20 @@ impl Pmc {
         crate::twi::ClockEnabled(())
     }
 
+    /// Enables the UDP's peripheral clock (ID 11) and its system clock
+    /// (`PMC_SCER` bit 7, `AT91C_PMC_UDP`); the controller needs both.
+    /// The 48 MHz USB clock itself comes from the PLL set up by
+    /// [`Self::init_clocks`] (USBDIV=/2).
+    pub fn enable_udp_clock(&mut self) -> crate::udp::ClockEnabled {
+        self.regs().pcer.set(1 << crate::udp::ID_UDP);
+        self.regs().scer.set(1 << 7);
+        crate::udp::ClockEnabled(())
+    }
+
     /// Switches MCK from the slow clock to the PLL (~48 MHz). Sets flash
     /// wait states first. Busy-waits on PMC_SR with no timeout, as NxOS
     /// does. Unverified on hardware.
-    pub fn init_clocks(&mut self) {
+    pub fn init_clocks(&mut self) -> ClocksReady {
         let r = self.regs();
         unsafe { MC_FMR.write_volatile((72 << 16) | (1 << 8)) }; // FMCN=72, FWS=1
         r.ckgr_mor.set(0x0000_0601); // MOSCEN, OSCOUNT=6
@@ -94,6 +109,19 @@ impl Pmc {
         r.mckr.set(0x4); // prescaler /2, still slow clock
         while r.sr.get() & SR_MCKRDY == 0 {}
         r.mckr.set(0x7); // source = PLL
+        while r.sr.get() & SR_MCKRDY == 0 {}
+        ClocksReady(())
+    }
+
+    /// Returns MCK to the slow clock (the reverse of [`Self::init_clocks`]),
+    /// leaving the main oscillator and PLL running. Used before handing off
+    /// to another image whose own `init_clocks` rewrites `CKGR_PLLR`, which
+    /// must not happen while MCK is sourced from the PLL.
+    pub fn slow_clock(&mut self) {
+        let r = self.regs();
+        r.mckr.set(0x4); // keep prescaler /2, source = slow clock
+        while r.sr.get() & SR_MCKRDY == 0 {}
+        r.mckr.set(0x0); // prescaler /1
         while r.sr.get() & SR_MCKRDY == 0 {}
     }
 }

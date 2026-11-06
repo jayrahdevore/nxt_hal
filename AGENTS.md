@@ -114,3 +114,11 @@ peripheral set, and isn't worth adapting here. That means:
 See `/home/agents/.claude/plans/i-have-a-lego-ethereal-bentley.md` for the
 original project plan (context on why things are structured this way,
 and the milestone sequence beyond what's built so far).
+
+## USB bootloader
+
+`firmware/nxt-boot` (see `docs/adr/0003-usb-bootloader.md`) lets you update
+the app over USB: hold Orange while powering on. One-time install over
+SAM-BA with `just boot-install`; afterwards `just app-upload`. Apps meant
+for it link with `link-app.x` (`just app-build`), not `link.x`. The
+bootloader itself is all hardware-unverified until flashed.

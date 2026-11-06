@@ -4,7 +4,9 @@ members = [
     "crates/nxt-pac",
     "crates/nxt-rt",
     "crates/nxt-hal",
+    "crates/nxt-boot-proto",
     "firmware/nxt-blinky",
+    "firmware/nxt-boot",
     "firmware/nxt-avrprobe",
 ]
 

@@ -1,0 +1,19 @@
+[package]
+name = "nxt-boot"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "USB bootloader: runs the installed app unless Orange is held at power-on (or no valid app exists), in which case it accepts a new app image over USB. See docs/adr/0003-usb-bootloader.md."
+
+[features]
+# Set the EFC lock bit on the bootloader's flash region at startup. Off by
+# default until the USB path is proven on hardware: once locked, only
+# SAM-BA's erase-all path (or clearing the lock bit) can change the
+# bootloader itself.
+lock-boot = []
+
+[dependencies]
+nxt-boot-proto = { path = "../../crates/nxt-boot-proto" }
+nxt-hal = { path = "../../crates/nxt-hal" }
+nxt-rt = { path = "../../crates/nxt-rt" }

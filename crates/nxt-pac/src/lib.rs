@@ -12,11 +12,13 @@
 //! built on top of this.
 #![no_std]
 
+pub mod mc;
 pub mod pio;
 pub mod pit;
 pub mod pmc;
 pub mod ssc;
 pub mod twi;
+pub mod udp;
 pub mod wdt;
 
 // armv4t-none-eabi has `max_atomic_width = 0` (ARMv4T predates
@@ -33,6 +35,7 @@ static mut TAKEN: bool = false;
 /// requires.
 pub struct Peripherals {
     pub pmc: pmc::Pmc,
+    pub mc: mc::Mc,
     pub wdt: wdt::Wdt,
 }
 
@@ -56,6 +59,7 @@ impl Peripherals {
     pub unsafe fn steal() -> Self {
         Self {
             pmc: pmc::Pmc::new(),
+            mc: mc::Mc::new(),
             wdt: wdt::Wdt::new(),
         }
     }

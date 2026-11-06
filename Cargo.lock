@@ -25,10 +25,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "nxt-boot"
+version = "0.1.0"
+dependencies = [
+ "nxt-boot-proto",
+ "nxt-hal",
+ "nxt-rt",
+]
+
+[[package]]
+name = "nxt-boot-proto"
+version = "0.1.0"
+
+[[package]]
 name = "nxt-hal"
 version = "0.1.0"
 dependencies = [
  "embedded-hal",
+ "nxt-boot-proto",
  "nxt-pac",
 ]
 

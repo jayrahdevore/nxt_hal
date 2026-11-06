@@ -8,3 +8,4 @@ description = "Safe, typestate-constrained embedded-hal API for the LEGO NXT, bu
 [dependencies]
 embedded-hal = "1.0.0"
 nxt-pac = { path = "../nxt-pac" }
+nxt-boot-proto = { path = "../nxt-boot-proto" }

@@ -21,3 +21,16 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
         core::hint::spin_loop();
     }
 }
+
+/// Transfers control to the ARM-state image whose first instruction is at
+/// `entry`, never returning. IRQ/FIQ stay masked (nothing enables them yet)
+/// and the target's own reset code sets all banked stacks, so no state
+/// needs to be carried over.
+///
+/// # Safety
+/// `entry` must be the address of valid ARM code that never expects to
+/// return, and the caller must have quiesced any peripheral the target
+/// would reinitialise unsafely.
+pub unsafe fn jump_to(entry: u32) -> ! {
+    core::arch::asm!("bx {0}", in(reg) entry, options(noreturn))
+}

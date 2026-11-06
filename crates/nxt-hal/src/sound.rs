@@ -15,6 +15,24 @@ const TONE_PATTERN: [u32; 16] = [
     0x8080C0C0, 0xC0C0C0C0,
 ];
 
+/// Periods per DMA buffer. The refill must land before the current buffer
+/// ends; at one period per buffer that is 0.5 ms at 2 kHz, which an AVR
+/// transaction plus a USB poll can miss (heard as garbled high notes).
+const PERIODS_PER_BUFFER: usize = 8;
+const BUFFER_WORDS: usize = TONE_PATTERN.len() * PERIODS_PER_BUFFER;
+
+const fn repeated_pattern() -> [u32; BUFFER_WORDS] {
+    let mut out = [0u32; BUFFER_WORDS];
+    let mut i = 0;
+    while i < BUFFER_WORDS {
+        out[i] = TONE_PATTERN[i % TONE_PATTERN.len()];
+        i += 1;
+    }
+    out
+}
+
+static TONE_BUFFER: [u32; BUFFER_WORDS] = repeated_pattern();
+
 pub struct Speaker {
     ssc: Ssc,
     pio: Pio,
@@ -52,16 +70,18 @@ impl Speaker {
         // = 48.05 MHz; NxOS's constant (96.11 MHz) omits that halving,
         // which put every note an octave low here.
         r.cmr.set(((48_054_857 / 1024) + freq / 2) / freq);
-        // One cycle lasts 1/freq s, so freq * ms / 1000 cycles fill `ms`.
-        let cycles = (freq * ms) / 1000;
+        // Buffers of PERIODS_PER_BUFFER periods each (rounded to nearest, so a
+        // tone is within half a buffer of `ms`).
+        let periods = (freq * ms) / 1000;
+        let cycles = (periods + PERIODS_PER_BUFFER as u32 / 2) / PERIODS_PER_BUFFER as u32;
         if cycles == 0 {
             return;
         }
         // Hand PA17 to the SSC only while a tone plays.
         self.pio.assign_peripheral_a(PA17_TD);
         r.cr.set(ssc::CR_TXEN);
-        let pattern = TONE_PATTERN.as_ptr() as u32;
-        let words = TONE_PATTERN.len() as u32;
+        let pattern = TONE_BUFFER.as_ptr() as u32;
+        let words = BUFFER_WORDS as u32;
 
         r.tpr.set(pattern);
         r.tcr.set(words);

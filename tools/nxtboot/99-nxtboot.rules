@@ -1,0 +1,4 @@
+# Lets the logged-in user talk to the nxt-boot USB bootloader.
+# Install: sudo cp 99-nxtboot.rules /etc/udev/rules.d/ && sudo udevadm control --reload && sudo udevadm trigger
+# (Replug / re-enter flash mode afterwards.) 1209:0001 is a placeholder ID.
+SUBSYSTEM=="usb", ATTR{idVendor}=="1209", ATTR{idProduct}=="0001", TAG+="uaccess", MODE="0660"
