@@ -16,6 +16,7 @@ pub mod mc;
 pub mod pio;
 pub mod pit;
 pub mod pmc;
+pub mod spi;
 pub mod ssc;
 pub mod twi;
 pub mod udp;

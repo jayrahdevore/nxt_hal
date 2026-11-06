@@ -85,6 +85,12 @@ impl Pmc {
         crate::twi::ClockEnabled(())
     }
 
+    /// Enables the SPI's peripheral clock.
+    pub fn enable_spi_clock(&mut self) -> crate::spi::ClockEnabled {
+        self.regs().pcer.set(1 << crate::spi::ID_SPI);
+        crate::spi::ClockEnabled(())
+    }
+
     /// Enables the UDP's peripheral clock (ID 11) and its system clock
     /// (`PMC_SCER` bit 7, `AT91C_PMC_UDP`); the controller needs both.
     /// The 48 MHz USB clock itself comes from the PLL set up by

@@ -11,7 +11,7 @@
 mod start;
 mod vectors;
 
-/// No display/UART is wired up yet (Milestone 0/1), so a panic has
+/// The panic handler doesn't drive the display or a UART, so a panic has
 /// nowhere to report to. Disable interrupts and spin, so it's at least
 /// distinguishable from a hang under a debugger rather than silently
 /// resetting or running off into garbage.

@@ -47,6 +47,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "nxt-lcd"
+version = "0.1.0"
+dependencies = [
+ "nxt-hal",
+ "nxt-rt",
+]
+
+[[package]]
 name = "nxt-pac"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,11 @@
+[package]
+name = "nxt-lcd"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish = false
+description = "Shows the Rust mascot, Ferris, on the NXT's 100x64 LCD."
+
+[dependencies]
+nxt-hal = { path = "../../crates/nxt-hal" }
+nxt-rt = { path = "../../crates/nxt-rt" }

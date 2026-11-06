@@ -5,6 +5,7 @@ pub mod avr;
 pub mod bootloader;
 pub mod flash;
 pub mod gpio;
+pub mod lcd;
 pub mod sound;
 pub mod usb;
 
