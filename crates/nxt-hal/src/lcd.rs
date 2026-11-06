@@ -70,6 +70,14 @@ impl Lcd {
         }
     }
 
+    /// Blanks the whole panel (display stays on).
+    pub fn clear(&mut self) {
+        for page in 0..PAGES {
+            self.command(&[0x00, 0x10, 0xB0 | page as u8]);
+            self.data(&[0; WIDTH]);
+        }
+    }
+
     fn command(&mut self, bytes: &[u8]) {
         self.set_mode(false);
         for &b in bytes {

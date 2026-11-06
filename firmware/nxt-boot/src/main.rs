@@ -2,7 +2,7 @@
 //!
 //! Boot decision: once the AVR link is up (the only way to read buttons),
 //! Orange held continuously for [`HOLD_MS`] -- or no valid app installed --
-//! enters upload mode; anything else runs the app. Upload mode enumerates
+//! enters upload mode (holding Cancel there exits to the app); anything else runs the app. Upload mode enumerates
 //! over USB and speaks the `nxt-boot-proto` command protocol.
 //!
 //! Everything here is polled, and the AVR link is serviced from every wait
@@ -33,6 +33,8 @@ mod wrench;
 const HOLD_MS: u32 = 1500;
 /// Give up waiting for the first valid AVR reply after this long.
 const LINK_TIMEOUT_MS: u32 = 1000;
+/// Holding Cancel this long in upload mode exits to the installed app.
+const CANCEL_EXIT_MS: u32 = 1000;
 /// Give up queueing a USB reply after this long (host went away).
 const REPLY_TIMEOUT_MS: u32 = 500;
 
@@ -122,8 +124,8 @@ pub extern "C" fn main() -> ! {
     // executing (e.g. the SAM-BA install did not take).
     speaker.beep(659, 100, || avr.service(&pit));
 
-    // Splash screen. Drawn on every power-up, before the boot decision; an
-    // app that doesn't use the LCD leaves it up. The ~40 ms of LCD reset
+    // Splash screen. Drawn on every power-up, before the boot decision, and
+    // cleared again when the bootloader hands off to the app. The ~40 ms of LCD reset
     // waits keep the AVR link serviced.
     let mut lcd = Lcd::new(pmc.enable_spi_clock(), pmc.enable_pioa_clock(), &pit, || avr.service(&pit));
     lcd.flush(&wrench::WRENCH);
@@ -171,7 +173,7 @@ pub extern "C" fn main() -> ! {
 
     if !upload {
         // `app` is Some here.
-        launch(&mut pmc, None, app.unwrap().entry);
+        launch(&mut pmc, &mut lcd, None, app.unwrap().entry);
     }
 
     // Flash-mode tone: a rising pair, distinct from the app's startup jingle.
@@ -180,14 +182,15 @@ pub extern "C" fn main() -> ! {
     }
     let mut usb = Usb::new(&mut pmc);
     usb.connect();
-    upload_loop(&mut pmc, &mut usb, &mut flash, &mut avr, &pit, &mut speaker, app)
+    upload_loop(&mut pmc, &mut lcd, &mut usb, &mut flash, &mut avr, &pit, &mut speaker, app)
 }
 
-/// Quiesces what the app will reinitialise, then jumps.
-fn launch(pmc: &mut nxt_hal::Pmc, usb: Option<&mut Usb>, entry: u32) -> ! {
+/// Quiesces what the app will reinitialise (clearing the splash), then jumps.
+fn launch(pmc: &mut nxt_hal::Pmc, lcd: &mut Lcd, usb: Option<&mut Usb>, entry: u32) -> ! {
     if let Some(usb) = usb {
         usb.disconnect();
     }
+    lcd.clear();
     pmc.slow_clock();
     unsafe { nxt_rt::jump_to(entry) }
 }
@@ -201,6 +204,7 @@ enum Rx {
 
 fn upload_loop(
     pmc: &mut nxt_hal::Pmc,
+    lcd: &mut Lcd,
     usb: &mut Usb,
     flash: &mut Flash,
     avr: &mut AvrLink,
@@ -213,10 +217,22 @@ fn upload_loop(
     let mut page_buf = [0u8; PAGE_SIZE];
     let mut pkt = [0u8; PACKET_SIZE];
     let mut enumerated = false;
+    let mut clock = Millis::new(pit);
+    let mut cancel_held = 0;
 
     loop {
         avr.service(pit);
         usb.poll();
+        // Hold Cancel to leave upload mode and run the installed app (ignored
+        // when there is none, so the brick can't be stuck booting garbage).
+        if clock.step(pit) {
+            cancel_held = if avr.button() == Button::Cancel { cancel_held + 1 } else { 0 };
+            if cancel_held == CANCEL_EXIT_MS {
+                if let Some(h) = check_app(|| avr.service(pit)) {
+                    launch(pmc, lcd, Some(usb), h.entry);
+                }
+            }
+        }
         // One tick when the host finishes enumerating: tells "USB never came
         // up" apart from "never entered flash mode".
         if !enumerated && usb.configured() {
@@ -311,7 +327,7 @@ fn upload_loop(
                                 ms += 1;
                             }
                         }
-                        launch(pmc, Some(usb), h.entry);
+                        launch(pmc, lcd, Some(usb), h.entry);
                     }
                     None => reply(usb, avr, pit, &[Status::NoApp as u8]),
                 },

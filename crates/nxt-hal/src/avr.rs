@@ -24,9 +24,11 @@ pub enum Button {
     None,
     /// Orange. Verified on hardware: reads ~2048 when held, 0..5 when idle.
     Enter,
-    /// The three below are confirmed to read as "pressed" on hardware (each beeps), but which variant maps to which physical button is unverified; thresholds are from memory of NxOS.
+    /// Grey button below Orange. Verified on hardware (exits the bootloader).
     Cancel,
+    /// Reads as "pressed" on hardware (beeps), but which physical button it is is unverified; threshold is from memory of NxOS.
     Right,
+    /// Verified on hardware (spins motor A in `nxt-motor`).
     Left,
 }
 
