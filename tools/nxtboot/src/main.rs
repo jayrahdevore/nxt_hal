@@ -2,7 +2,9 @@
 //!
 //! ```text
 //! nxtboot info                     query the bootloader
-//! nxtboot flash APP.bin            upload an app image (linked with link-app.x)
+//! nxtboot flash [--no-boot] APP.bin
+//!                                  upload an app image (linked with link-app.x),
+//!                                  then boot it unless --no-boot
 //! nxtboot verify APP.bin           compare the installed image with a local file
 //! nxtboot boot                     validate + run the installed app
 //! nxtboot pack BOOT.bin APP.bin OUT.bin
@@ -94,7 +96,7 @@ fn installed_info() -> Result<Info, String> {
     parse_info(&r).ok_or_else(|| "short INFO reply (old bootloader? reinstall it)".to_string())
 }
 
-fn flash(app: &[u8]) -> Result<(), String> {
+fn flash(app: &[u8], boot: bool) -> Result<(), String> {
     let app = &word_padded(app);
     let header = header_for(app)?;
     let mut dev = Boot::open()?;
@@ -120,6 +122,12 @@ fn flash(app: &[u8]) -> Result<(), String> {
             "uploaded {} bytes, crc32 {:08x} (device verified the CRC; this bootloader is too old to report it back -- reinstall it with just boot-install)",
             header.length, header.crc32
         ),
+    }
+    // The bootloader stays in upload mode until told otherwise, so start the
+    // new app now rather than leaving the brick waiting for a power cycle.
+    if boot {
+        dev.request(Request::Boot, None)?;
+        println!("booting the new app");
     }
     Ok(())
 }
@@ -154,7 +162,8 @@ fn run() -> Result<(), String> {
                 None => Err("DIFFERENT: no valid app installed".into()),
             }
         }
-        ["flash", _] => flash(&read(&args[1])?),
+        ["flash", _] => flash(&read(&args[1])?, true),
+        ["flash", "--no-boot", _] => flash(&read(&args[2])?, false),
         ["boot"] => Boot::open()?.request(Request::Boot, None).map(|_| ()),
         ["pack", _, _, out] => {
             let img = pack(&read(&args[1])?, &read(&args[2])?)?;
