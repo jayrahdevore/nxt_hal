@@ -10,9 +10,9 @@ use vcell::VolatileCell;
 
 #[repr(C)]
 pub struct RegisterBlock {
-    pub cr: VolatileCell<u32>,  // 0x00 Control
-    pub cmr: VolatileCell<u32>, // 0x04 Clock Mode (divider)
-    _reserved0: [u32; 2],       // 0x08, 0x0C
+    pub cr: VolatileCell<u32>,   // 0x00 Control
+    pub cmr: VolatileCell<u32>,  // 0x04 Clock Mode (divider)
+    _reserved0: [u32; 2],        // 0x08, 0x0C
     pub rcmr: VolatileCell<u32>, // 0x10
     pub rfmr: VolatileCell<u32>, // 0x14
     pub tcmr: VolatileCell<u32>, // 0x18 Transmit Clock Mode

@@ -55,11 +55,22 @@ impl Flash {
 
     /// Issues an EFC command (optionally latching a page of data first)
     /// via [`ram_command`] and decodes the status.
-    fn command(&self, cmd: u32, page: u16, latch: Option<&[u32; PAGE_SIZE / 4]>) -> Result<(), Error> {
+    fn command(
+        &self,
+        cmd: u32,
+        page: u16,
+        latch: Option<&[u32; PAGE_SIZE / 4]>,
+    ) -> Result<(), Error> {
         self.wait_ready()?;
         let fcr = mc::FCR_KEY | ((page as u32) << mc::FCR_PAGEN_SHIFT) | cmd;
         let dst = (FLASH_BASE + page as usize * PAGE_SIZE) as *mut u32;
-        let (src, words) = latch.map_or((core::ptr::NonNull::<u32>::dangling().as_ptr() as *const u32, 0), |w| (w.as_ptr(), w.len()));
+        let (src, words) = latch.map_or(
+            (
+                core::ptr::NonNull::<u32>::dangling().as_ptr() as *const u32,
+                0,
+            ),
+            |w| (w.as_ptr(), w.len()),
+        );
         let fsr = unsafe { ram_command(dst, src, words, fcr) };
         if fsr == 0 {
             Err(Error::Timeout)

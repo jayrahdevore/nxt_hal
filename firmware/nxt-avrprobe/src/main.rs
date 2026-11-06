@@ -69,7 +69,10 @@ pub extern "C" fn probe() {
         let b = avr.last_rx;
         let o = w * 4;
         let v = |i: usize| if i < 13 { b[i] as u32 } else { 0 };
-        mb(32 + w, v(o) | v(o + 1) << 8 | v(o + 2) << 16 | v(o + 3) << 24);
+        mb(
+            32 + w,
+            v(o) | v(o + 1) << 8 | v(o + 2) << 16 | v(o + 3) << 24,
+        );
     }
     mb(11, lo);
     mb(12, hi);

@@ -18,18 +18,18 @@ pub struct RegisterBlock {
     _reserved1: u32,            // 0x1C
     pub ifer: VolatileCell<u32>, // 0x20 Glitch Input Filter Enable
     pub ifdr: VolatileCell<u32>, // 0x24 Glitch Input Filter Disable
-    _reserved2: [u32; 2],        // 0x28, 0x2C
+    _reserved2: [u32; 2],       // 0x28, 0x2C
     pub sodr: VolatileCell<u32>, // 0x30 Set Output Data
     pub codr: VolatileCell<u32>, // 0x34 Clear Output Data
     pub odsr: VolatileCell<u32>, // 0x38 Output Data Status
     pub pdsr: VolatileCell<u32>, // 0x3C Pin Data Status (reads the actual pin level)
-    _reserved3: [u32; 4],        // 0x40..=0x4C
+    _reserved3: [u32; 4],       // 0x40..=0x4C
     pub mder: VolatileCell<u32>, // 0x50 Multi-Driver (open-drain) Enable
     pub mddr: VolatileCell<u32>, // 0x54 Multi-Driver Disable
-    _reserved4: [u32; 2],        // 0x58, 0x5C
+    _reserved4: [u32; 2],       // 0x58, 0x5C
     pub ppudr: VolatileCell<u32>, // 0x60 Pull-Up Disable
     pub ppuer: VolatileCell<u32>, // 0x64 Pull-Up Enable
-    _reserved5: [u32; 2],         // 0x68, 0x6C
+    _reserved5: [u32; 2],       // 0x68, 0x6C
     pub asr: VolatileCell<u32>, // 0x70 Select Peripheral A
     pub bsr: VolatileCell<u32>, // 0x74 Select Peripheral B
 }

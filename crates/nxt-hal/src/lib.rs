@@ -10,5 +10,5 @@ pub mod sound;
 pub mod usb;
 
 pub use nxt_pac::pit::Pit;
-pub use nxt_pac::Peripherals;
 pub use nxt_pac::pmc::Pmc;
+pub use nxt_pac::Peripherals;

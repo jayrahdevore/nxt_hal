@@ -47,7 +47,11 @@ pub fn crc32_update(mut crc: u32, data: &[u8]) -> u32 {
     for &b in data {
         crc ^= b as u32;
         for _ in 0..8 {
-            crc = if crc & 1 != 0 { (crc >> 1) ^ 0xEDB8_8320 } else { crc >> 1 };
+            crc = if crc & 1 != 0 {
+                (crc >> 1) ^ 0xEDB8_8320
+            } else {
+                crc >> 1
+            };
         }
     }
     crc
@@ -98,7 +102,11 @@ impl AppHeader {
         if w(0) != HEADER_MAGIC {
             return Err(HeaderError::BadMagic);
         }
-        let h = AppHeader { length: w(4), crc32: w(8), entry: w(12) };
+        let h = AppHeader {
+            length: w(4),
+            crc32: w(8),
+            entry: w(12),
+        };
         if h.length == 0 || h.length > IMAGE_MAX_SIZE {
             return Err(HeaderError::BadLength);
         }
@@ -173,7 +181,9 @@ pub const MAX_REQUEST: usize = 1 + HEADER_SIZE;
 
 impl Request {
     pub fn parse(pkt: &[u8]) -> Result<Self, ParseError> {
-        let Some(&cmd) = pkt.first() else { return Err(ParseError::TooShort) };
+        let Some(&cmd) = pkt.first() else {
+            return Err(ParseError::TooShort);
+        };
         match cmd {
             CMD_INFO => Ok(Request::Info),
             CMD_BEGIN => Ok(Request::Begin),
@@ -181,7 +191,9 @@ impl Request {
                 if pkt.len() < 3 {
                     return Err(ParseError::TooShort);
                 }
-                Ok(Request::Write { page: u16::from_le_bytes([pkt[1], pkt[2]]) })
+                Ok(Request::Write {
+                    page: u16::from_le_bytes([pkt[1], pkt[2]]),
+                })
             }
             CMD_FINISH => {
                 let body: &[u8; HEADER_SIZE] = pkt
@@ -307,7 +319,11 @@ mod tests {
     }
 
     fn sample() -> AppHeader {
-        AppHeader { length: 100, crc32: 0x1234_5678, entry: IMAGE_BASE }
+        AppHeader {
+            length: 100,
+            crc32: 0x1234_5678,
+            entry: IMAGE_BASE,
+        }
     }
 
     #[test]
@@ -318,7 +334,10 @@ mod tests {
 
     #[test]
     fn erased_header_is_rejected() {
-        assert_eq!(AppHeader::parse(&[0xFF; HEADER_SIZE]), Err(HeaderError::BadMagic));
+        assert_eq!(
+            AppHeader::parse(&[0xFF; HEADER_SIZE]),
+            Err(HeaderError::BadMagic)
+        );
     }
 
     #[test]
@@ -340,7 +359,11 @@ mod tests {
     #[test]
     fn verify_checks_crc_and_length() {
         let image = [0xA5u8; 100];
-        let h = AppHeader { length: 100, crc32: crc32(&image), entry: IMAGE_BASE };
+        let h = AppHeader {
+            length: 100,
+            crc32: crc32(&image),
+            entry: IMAGE_BASE,
+        };
         assert_eq!(h.verify(&image), Ok(()));
         let mut bad = image;
         bad[7] ^= 1;
@@ -364,18 +387,31 @@ mod tests {
         assert_eq!(Request::parse(&[CMD_WRITE, 1]), Err(ParseError::TooShort));
         assert_eq!(Request::parse(&[9]), Err(ParseError::Unknown(9)));
         // FINISH with a truncated or invalid header.
-        assert_eq!(Request::parse(&[CMD_FINISH, 1, 2]), Err(ParseError::TooShort));
+        assert_eq!(
+            Request::parse(&[CMD_FINISH, 1, 2]),
+            Err(ParseError::TooShort)
+        );
         let mut bad = [0u8; MAX_REQUEST];
         bad[0] = CMD_FINISH;
-        assert_eq!(Request::parse(&bad), Err(ParseError::BadHeader(HeaderError::BadMagic)));
+        assert_eq!(
+            Request::parse(&bad),
+            Err(ParseError::BadHeader(HeaderError::BadMagic))
+        );
     }
 
     #[test]
     fn info_reply_layout() {
-        let h = AppHeader { length: 100, crc32: 0xDEAD_BEEF, entry: IMAGE_BASE };
+        let h = AppHeader {
+            length: 100,
+            crc32: 0xDEAD_BEEF,
+            entry: IMAGE_BASE,
+        };
         let i = parse_info(&encode_info(Some(h))).unwrap();
         assert_eq!(i.version, PROTOCOL_VERSION);
-        assert_eq!((i.page_size, i.image_first_page, i.flash_pages), (256, 65, 1024));
+        assert_eq!(
+            (i.page_size, i.image_first_page, i.flash_pages),
+            (256, 65, 1024)
+        );
         assert_eq!(i.app, Some((100, 0xDEAD_BEEF)));
         assert_eq!(parse_info(&encode_info(None)).unwrap().app, None);
         assert_eq!(parse_info(&[0; 12]), None); // older bootloader

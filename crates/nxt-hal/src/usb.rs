@@ -36,13 +36,23 @@ const DESC_CONFIG: u8 = 2;
 /// Builds the device descriptor for `vid`/`pid`.
 const fn device_descriptor(vid: u16, pid: u16) -> [u8; 18] {
     [
-        18, DESC_DEVICE, 0x00, 0x02, // USB 2.0
-        0xFF, 0x00, 0x00, // vendor-specific class
+        18,
+        DESC_DEVICE,
+        0x00,
+        0x02, // USB 2.0
+        0xFF,
+        0x00,
+        0x00, // vendor-specific class
         EP0_SIZE as u8,
-        vid as u8, (vid >> 8) as u8,
-        pid as u8, (pid >> 8) as u8,
-        0x00, 0x01, // device release 1.0
-        0, 0, 0, // no strings
+        vid as u8,
+        (vid >> 8) as u8,
+        pid as u8,
+        (pid >> 8) as u8,
+        0x00,
+        0x01, // device release 1.0
+        0,
+        0,
+        0, // no strings
         1, // one configuration
     ]
 }
@@ -51,13 +61,41 @@ static DEVICE_DESC: [u8; 18] = device_descriptor(nxt_boot_proto::USB_VID, nxt_bo
 
 static CONFIG_DESC: [u8; 32] = [
     // configuration: 32 bytes total, 1 interface, self-powered
-    9, DESC_CONFIG, 32, 0, 1, 1, 0, 0x40, 0,
+    9,
+    DESC_CONFIG,
+    32,
+    0,
+    1,
+    1,
+    0,
+    0x40,
+    0,
     // interface 0: 2 endpoints, vendor-specific
-    9, 4, 0, 0, 2, 0xFF, 0xFF, 0xFF, 0,
+    9,
+    4,
+    0,
+    0,
+    2,
+    0xFF,
+    0xFF,
+    0xFF,
+    0,
     // EP1 OUT, bulk, 64 bytes
-    7, 5, 0x01, 0x02, BULK_SIZE as u8, 0, 0,
+    7,
+    5,
+    0x01,
+    0x02,
+    BULK_SIZE as u8,
+    0,
+    0,
     // EP2 IN, bulk, 64 bytes
-    7, 5, 0x82, 0x02, BULK_SIZE as u8, 0, 0,
+    7,
+    5,
+    0x82,
+    0x02,
+    BULK_SIZE as u8,
+    0,
+    0,
 ];
 
 static STATUS_SELF_POWERED: [u8; 2] = [1, 0];
@@ -174,7 +212,12 @@ impl Usb {
             return;
         }
         // Housekeeping flags we don't act on.
-        let stale = r.isr.get() & (udp::INT_RXSUSP | udp::INT_RXRSM | udp::INT_SOFINT | udp::INT_WAKEUP | udp::INT_EXTRSM);
+        let stale = r.isr.get()
+            & (udp::INT_RXSUSP
+                | udp::INT_RXRSM
+                | udp::INT_SOFINT
+                | udp::INT_WAKEUP
+                | udp::INT_EXTRSM);
         if stale != 0 {
             r.icr.set(stale);
         }
@@ -261,7 +304,14 @@ impl Usb {
         match request {
             REQ_GET_STATUS => {
                 let device = req_type & 0x1F == 0;
-                self.ep0_reply(if device { &STATUS_SELF_POWERED } else { &STATUS_ZERO }, wlength);
+                self.ep0_reply(
+                    if device {
+                        &STATUS_SELF_POWERED
+                    } else {
+                        &STATUS_ZERO
+                    },
+                    wlength,
+                );
             }
             REQ_CLEAR_FEATURE | REQ_SET_FEATURE | REQ_SET_INTERFACE => self.ep0_ack(),
             REQ_SET_ADDRESS => {
@@ -274,9 +324,14 @@ impl Usb {
                 DESC_CONFIG => self.ep0_reply(&CONFIG_DESC, wlength),
                 _ => self.ep0_stall(), // incl. device qualifier: full-speed only
             },
-            REQ_GET_CONFIGURATION => {
-                self.ep0_reply(if self.configured { &BYTE_ONE } else { &BYTE_ZERO }, wlength)
-            }
+            REQ_GET_CONFIGURATION => self.ep0_reply(
+                if self.configured {
+                    &BYTE_ONE
+                } else {
+                    &BYTE_ZERO
+                },
+                wlength,
+            ),
             REQ_SET_CONFIGURATION => self.set_configuration(value as u8),
             REQ_GET_INTERFACE => self.ep0_reply(&BYTE_ZERO, wlength),
             _ => self.ep0_stall(),
@@ -310,7 +365,11 @@ impl Usb {
             return None;
         }
         let r = self.udp.regs();
-        let bank = if self.rx_bank1 { udp::CSR_RX_DATA_BK1 } else { udp::CSR_RX_DATA_BK0 };
+        let bank = if self.rx_bank1 {
+            udp::CSR_RX_DATA_BK1
+        } else {
+            udp::CSR_RX_DATA_BK0
+        };
         let csr = r.csr[EP_OUT].get();
         if csr & bank == 0 {
             return None;

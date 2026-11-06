@@ -14,8 +14,8 @@
 #![no_main]
 
 use nxt_boot_proto::{
-    crc32_update, encode_info, page_in_image_region, AppHeader, ParseError, Request, Status, APP_FIRST_PAGE, BOOT_SIZE,
-    HEADER_SIZE, IMAGE_BASE, PACKET_SIZE, PAGE_SIZE,
+    crc32_update, encode_info, page_in_image_region, AppHeader, ParseError, Request, Status,
+    APP_FIRST_PAGE, BOOT_SIZE, HEADER_SIZE, IMAGE_BASE, PACKET_SIZE, PAGE_SIZE,
 };
 use nxt_hal::avr::{AvrLink, Button};
 use nxt_hal::flash::Flash;
@@ -82,7 +82,8 @@ fn image_crc(length: u32, background: &mut impl FnMut()) -> u32 {
     let mut off = 0usize;
     while off < length as usize {
         let n = (length as usize - off).min(PAGE_SIZE);
-        let chunk = unsafe { core::slice::from_raw_parts((IMAGE_BASE as usize + off) as *const u8, n) };
+        let chunk =
+            unsafe { core::slice::from_raw_parts((IMAGE_BASE as usize + off) as *const u8, n) };
         crc = crc32_update(crc, chunk);
         off += n;
         background();
@@ -127,7 +128,12 @@ pub extern "C" fn main() -> ! {
     // Splash screen. Drawn on every power-up, before the boot decision, and
     // cleared again when the bootloader hands off to the app. The ~40 ms of LCD reset
     // waits keep the AVR link serviced.
-    let mut lcd = Lcd::new(pmc.enable_spi_clock(), pmc.enable_pioa_clock(), &pit, || avr.service(&pit));
+    let mut lcd = Lcd::new(
+        pmc.enable_spi_clock(),
+        pmc.enable_pioa_clock(),
+        &pit,
+        || avr.service(&pit),
+    );
     lcd.flush(&wrench::WRENCH);
 
     // Wait for the first valid AVR reply: before that `button()` reads 0,
@@ -182,7 +188,16 @@ pub extern "C" fn main() -> ! {
     }
     let mut usb = Usb::new(&mut pmc);
     usb.connect();
-    upload_loop(&mut pmc, &mut lcd, &mut usb, &mut flash, &mut avr, &pit, &mut speaker, app)
+    upload_loop(
+        &mut pmc,
+        &mut lcd,
+        &mut usb,
+        &mut flash,
+        &mut avr,
+        &pit,
+        &mut speaker,
+        app,
+    )
 }
 
 /// Quiesces what the app will reinitialise (clearing the splash), then jumps.
@@ -199,7 +214,11 @@ enum Rx {
     Command,
     /// Collecting a page's data; `page` is `None` when the WRITE was
     /// rejected and the data is being discarded.
-    PageData { page: Option<u16>, got: usize, status: Status },
+    PageData {
+        page: Option<u16>,
+        got: usize,
+        status: Status,
+    },
 }
 
 fn upload_loop(
@@ -226,7 +245,11 @@ fn upload_loop(
         // Hold Cancel to leave upload mode and run the installed app (ignored
         // when there is none, so the brick can't be stuck booting garbage).
         if clock.step(pit) {
-            cancel_held = if avr.button() == Button::Cancel { cancel_held + 1 } else { 0 };
+            cancel_held = if avr.button() == Button::Cancel {
+                cancel_held + 1
+            } else {
+                0
+            };
             if cancel_held == CANCEL_EXIT_MS {
                 if let Some(h) = check_app(|| avr.service(pit)) {
                     launch(pmc, lcd, Some(usb), h.entry);
@@ -242,10 +265,16 @@ fn upload_loop(
                 usb.poll();
             });
         }
-        let Some(n) = usb.read(&mut pkt) else { continue };
+        let Some(n) = usb.read(&mut pkt) else {
+            continue;
+        };
 
         match rx {
-            Rx::PageData { page, ref mut got, status } => {
+            Rx::PageData {
+                page,
+                ref mut got,
+                status,
+            } => {
                 let take = n.min(PAGE_SIZE - *got);
                 page_buf[*got..*got + take].copy_from_slice(&pkt[..take]);
                 *got += take;
@@ -284,7 +313,11 @@ fn upload_loop(
                     } else {
                         (Some(page), Status::Ok)
                     };
-                    rx = Rx::PageData { page, got: 0, status };
+                    rx = Rx::PageData {
+                        page,
+                        got: 0,
+                        status,
+                    };
                 }
                 Ok(Request::Finish { header }) => {
                     let status = if !begun {

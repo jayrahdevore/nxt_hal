@@ -8,8 +8,8 @@
 //! assumes MCK ~= 48 MHz).
 
 use nxt_pac::pio::{ClockEnabled as PioClock, Pio};
-use nxt_pac::spi::{ClockEnabled as SpiClock, Spi, PA10_NPCS2, PA12_MISO};
 use nxt_pac::pit::Pit;
+use nxt_pac::spi::{ClockEnabled as SpiClock, Spi, PA10_NPCS2, PA12_MISO};
 
 pub const WIDTH: usize = 100;
 pub const HEIGHT: usize = 64;

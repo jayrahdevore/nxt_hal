@@ -54,7 +54,11 @@ pub extern "C" fn main() -> ! {
         if t != last_tick {
             last_tick = t;
             let held_ms = chord.update(avr.button() == Button::LeftRight);
-            cancel_ms = if avr.button() == Button::Cancel { cancel_ms + 1 } else { 0 };
+            cancel_ms = if avr.button() == Button::Cancel {
+                cancel_ms + 1
+            } else {
+                0
+            };
             if cancel_ms >= POWER_OFF_HOLD_MS {
                 lcd.shutdown(&pit, || avr.service(&pit));
                 avr.power_off(&pit);

@@ -74,7 +74,11 @@ impl Twi {
     /// locks up if initialised in that state, so PA3/PA4 are first driven
     /// by hand for up to 9 clocks until SDA releases.
     pub fn new(_clock: ClockEnabled, pio: &mut Pio) -> Self {
-        let twi = Self { _private: (), dbg_sr: 0, dbg_idx: 0 };
+        let twi = Self {
+            _private: (),
+            dbg_sr: 0,
+            dbg_idx: 0,
+        };
         twi.regs().idr.set(!0);
 
         let p = pio.regs();

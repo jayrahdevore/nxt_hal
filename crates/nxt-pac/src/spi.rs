@@ -13,15 +13,15 @@ use vcell::VolatileCell;
 
 #[repr(C)]
 pub struct RegisterBlock {
-    pub cr: VolatileCell<u32>,     // 0x00
-    pub mr: VolatileCell<u32>,     // 0x04
-    pub rdr: VolatileCell<u32>,    // 0x08
-    pub tdr: VolatileCell<u32>,    // 0x0C
-    pub sr: VolatileCell<u32>,     // 0x10
-    pub ier: VolatileCell<u32>,    // 0x14
-    pub idr: VolatileCell<u32>,    // 0x18
-    pub imr: VolatileCell<u32>,    // 0x1C
-    _reserved0: [u32; 4],          // 0x20..0x2C
+    pub cr: VolatileCell<u32>,       // 0x00
+    pub mr: VolatileCell<u32>,       // 0x04
+    pub rdr: VolatileCell<u32>,      // 0x08
+    pub tdr: VolatileCell<u32>,      // 0x0C
+    pub sr: VolatileCell<u32>,       // 0x10
+    pub ier: VolatileCell<u32>,      // 0x14
+    pub idr: VolatileCell<u32>,      // 0x18
+    pub imr: VolatileCell<u32>,      // 0x1C
+    _reserved0: [u32; 4],            // 0x20..0x2C
     pub csr: [VolatileCell<u32>; 4], // 0x30..0x3C
 }
 

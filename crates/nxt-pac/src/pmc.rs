@@ -13,14 +13,14 @@ use vcell::VolatileCell;
 
 #[repr(C)]
 pub struct RegisterBlock {
-    pub scer: VolatileCell<u32>, // 0x00 PMC_SCER: System Clock Enable
-    pub scdr: VolatileCell<u32>, // 0x04 PMC_SCDR: System Clock Disable
-    pub scsr: VolatileCell<u32>, // 0x08 PMC_SCSR: System Clock Status
-    _reserved0: u32,             // 0x0C
-    pub pcer: VolatileCell<u32>, // 0x10 PMC_PCER: Peripheral Clock Enable
-    pub pcdr: VolatileCell<u32>, // 0x14 PMC_PCDR: Peripheral Clock Disable
-    pub pcsr: VolatileCell<u32>, // 0x18 PMC_PCSR: Peripheral Clock Status
-    _reserved1: u32,             // 0x1C
+    pub scer: VolatileCell<u32>,      // 0x00 PMC_SCER: System Clock Enable
+    pub scdr: VolatileCell<u32>,      // 0x04 PMC_SCDR: System Clock Disable
+    pub scsr: VolatileCell<u32>,      // 0x08 PMC_SCSR: System Clock Status
+    _reserved0: u32,                  // 0x0C
+    pub pcer: VolatileCell<u32>,      // 0x10 PMC_PCER: Peripheral Clock Enable
+    pub pcdr: VolatileCell<u32>,      // 0x14 PMC_PCDR: Peripheral Clock Disable
+    pub pcsr: VolatileCell<u32>,      // 0x18 PMC_PCSR: Peripheral Clock Status
+    _reserved1: u32,                  // 0x1C
     pub ckgr_mor: VolatileCell<u32>,  // 0x20 CKGR_MOR: Main Oscillator Register
     _reserved2: [u32; 2],             // 0x24, 0x28
     pub ckgr_pllr: VolatileCell<u32>, // 0x2C CKGR_PLLR: PLL Register
